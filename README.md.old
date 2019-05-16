@@ -2,35 +2,25 @@
 Apply automated program analysis techniques to detect errors in Linux kernel.
 This repository is mostly about symbolically execute Linux kernel on FuzzBALL.
 
-#### Create a disk image with debian installed
+#### Install Ubuntu 16.04 LTS on QEMU
 ```bash
-IMG=qemu-image.img
-DIR=mount-point.dir
-qemu-img create $IMG 1g
-mkfs.ext2 $IMG
-mkdir $DIR
-sudo mount -o loop $IMG $DIR
-sudo debootstrap --arch amd64 jessie $DIR
-sudo umount $DIR
-rmdir $DIR
+qemu-img create ubuntu.img 30G
+qemu-system-i386 -hda ubuntu.img -monitor stdio -boot d -cdrom \
+./ubuntu-16.04.5-i386.iso -m 512 -enable-kvm
+# monitor: open monitor in terminal
+# snapshot: discard change made to the disk image at shutdown
 ```
-
-#### Run Linux kernel on QEMU
-```bash
-qemu/i386-softmmu/qemu-system-i386 \
--kernel linux/arch/x86/boot/bzImage -hda debian.img -cdrom floppy.img \
--append "root=/dev/sda single console=ttyS0" --enable-kvm --nographic -no-hpet -no-acpi 
-```
-
-- Add ``-snapshot``if you don't want to modify the disk image.
-- Replace ``--nographic`` and ``console=ttyS0`` with ``-monitor stdio`` if you want to open a new window for QEMU.
-- Add ``-s -S`` if you want to debug with gdb. 
 
 Some useful qemu monitor command lines
 - ``info kvm`` check whether kvm is enabled
 - ``print $reg_name`` print the content of a register, e.g. print $eax
 
-#### Create and run a exploit disk image
+#### Run Ubuntu 16.04 LTS on QEMU
+```bash
+qemu-system-i386 -hda ubuntu.img -monitor stdio -boot d -snapshot -m 512 -enable-kvm
+```
+
+#### Reproduce a Linux Kernel Bug
 A bug can be reproduced by a combination of a disk image and a sequence of syscalls (program),
 though sometime disk image only or program only can be enough.
 
@@ -71,8 +61,9 @@ You may need to recompile a linux kernel to get the unstripped vmlinux.
 Given an unstripped vmlinux, start QEMU and gdb as bellow to debug.
 
 ```bash
-# On QEMU, add -s and -S to connect to port 1234 of gdb
 # On gdb
-gdb ./Linux/vmlinux
+gdb ./vmlinux
 (gdb) target remote localhost:1234
+# On QEMU, add -s and -S to connect to port 1234 of gdb
+qemu-system-i386 -s -S  -hda ubuntu.img -cdrom floppy_CVE20181092.img -monitor stdio -boot d -m 512 -enable-kvm
 ```
