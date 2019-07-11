@@ -4,3 +4,6 @@
 [submodule "fuzzball"]
 	path = fuzzball
 	url = https://github.com/yanxx297/fuzzball-mose
+[submodule "qemu-mose"]
+	path = qemu-mose
+	url = https://github.com/yanxx297/qemu-mose
