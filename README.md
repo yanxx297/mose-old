@@ -73,6 +73,17 @@ To do that, create another empty disk image and mount it, then copy the CVE disk
 Now that you get a disk image that contains the CVE image, mount it to the virtual machine and copy the CVE image to the VM.
 NOTE: the root dir of the virtual machine should be writable.
 
+To avoid IO operation accessing block devices (hard disk), we can copy the exploit disk image to ram disk before mounting.
+```bash
+# Init ram disk
+mkdir /mnt/ramdisk
+mount -t tmpfs -o size=512m tmpfs /mnt/ramdisk
+
+# Copy and mount
+cp CVE20181092.img /mnt/ramdisk
+mount -o loop /mnt/ramdisk/CVE20181092.img /mnt/hdd
+```
+
 
 #### Debug Linux kernel using QEMU
 To debug linux kernel, an unstripped kernel binary (usually named vmlinux/vmlinuz)
@@ -90,27 +101,23 @@ gdb ./Linux/vmlinux -ex "target remote localhost:1234"
 #### Create memdump(s) in QEMU
 We can create a memdump at any breakpoint using QMP (QEMU monitor) and gdb.
 
-To achieve this, we first run kernel on qemu and connect gdb to it, 
+To achieve this, we first run kernel on qemu and connect gdb to it,
 then break at wherever location we want.
 At this moment, if we create a  memdump using ``memsave``, it represents the states of the breakpoint.
-
-NOTE: memsave can only dump valid and readable memory, check by ``info mem`` in QMP for more info.
-For now we both dump a region of 128MBs starting at 0xc0000000 (which is the start addr of kernel memory)
-and GDT. 
-To dump GDT, get GDTR value in QMP by ``info registers`` and the first 4 bytes is the starting address of GDT.
+```bash
+(qemu)memsave 0x0 0xfffff000 memsave
+```
 
 #### Convert raw memdump to FuzzBALL state
-raw-to-state.pl can convert at most 2 memdumps to one FuzzBALL state.
+Use raw-to-state.pl to convert a QEMU memdump to a FuzzBALL state.
 ```bash
-perl raw-to-state.pl memsave 0xc0000000 memsave.state
-perl raw-to-state.pl memsave 0xc0000000 gdt_fs 0xffc01000 memsave.state
+perl raw-to-state.pl memsave 0x0 memsave.state
 ```
 
 #### Run kernel state on FuzzBALL
 ```bash
-./fuzzball/exec_utils/fuzzball -trace-insns -trace-ir -trace-basic -trace-eip -trace-regions \
--trace-temps -trace-loads -trace-stores \
--state memsave.state -load-region 0xc0000000+0x40000000 \
--start-addr 0xc119bb80 -initial-esp 0xc71b5f88
+fuzzball -trace-insns -trace-basic -trace-regions -trace-temps /
+-start-addr 0xc119ad20 -initial-esp 0xc70ddf88 -initial-gdtr 0xffc01000 /
+-state memsave.state -load-region 0x0+0xffffffff
 # start addr and initial esp should be the same eip/esp when memdump made
 ```
