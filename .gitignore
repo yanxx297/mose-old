@@ -1,4 +1,7 @@
+*.swp
 *.img
 *.log
 *.dump
+*.hex
+*.pyc
 memsave*
