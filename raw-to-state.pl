@@ -19,7 +19,8 @@ sub write_header {
        $orig_eax, $eip, $xcs, $eflags, $esp, $xss) = (0) x 17;
    # Hardcode FS to 0xd8
    # TODO: Add options to set registers
-    my($xfs) = 216;    
+    my($xfs) = 0xd8;
+    my($eflags) = 0x287;
     printf "EAX: 0x%08x    EBX: 0x%08x\n", $eax, $ebx;
     printf "ECX: 0x%08x    EDX: 0x%08x\n", $ecx, $edx;
     printf "ESI: 0x%08x    EDI: 0x%08x\n", $esi, $edi;
