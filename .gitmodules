@@ -3,7 +3,7 @@
 	url = https://github.com/torvalds/linux
 [submodule "fuzzball"]
 	path = fuzzball
-	url = https://github.com/yanxx297/fuzzball-mose
+	url = https://github.com/yanxx297/fuzzball
 [submodule "qemu-mose"]
 	path = qemu-mose
 	url = https://github.com/yanxx297/qemu-mose
