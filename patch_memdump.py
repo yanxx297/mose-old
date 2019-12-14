@@ -24,7 +24,9 @@ def load_file_to_hashmap(filename, page_size = 4096):
 
 
 def patch_memdump(dumpfile, exploitfile, taint, offset = 0, page_size = 4096):
-    with open(dumpfile, "rb+") as dump, open(dumpfile + "_patched", "wb") as out:
+    res = []
+    outfile = dumpfile + "_patched"
+    with open(dumpfile, "rb+") as dump, open(outfile, "wb") as out:
         count = 0
         out.write(dump.read(offset))
         print "Copied the first " + str(out.tell()) + " Bytes to patched file"
@@ -34,6 +36,7 @@ def patch_memdump(dumpfile, exploitfile, taint, offset = 0, page_size = 4096):
                 break
 
             if taint.has_key(data):
+                res.append(out.tell())
                 count = count + 1
                 with open(exploitfile, "rb+") as exploit:
                     exploit.seek(taint[data])
@@ -50,6 +53,7 @@ def patch_memdump(dumpfile, exploitfile, taint, offset = 0, page_size = 4096):
             else:
                 out.write(data)
         print "Totally patched " + str(count) + " pages"
+        return (outfile, res)
 
 
 if __name__ == "__main__":
