@@ -73,17 +73,6 @@ To do that, create another empty disk image and mount it, then copy the CVE disk
 Now that you get a disk image that contains the CVE image, mount it to the virtual machine and copy the CVE image to the VM.
 NOTE: the root dir of the virtual machine should be writable.
 
-To avoid IO operation accessing block devices (hard disk), we can copy the exploit disk image to ram disk before mounting.
-```bash
-# Init ram disk
-mkdir /mnt/ramdisk
-mount -t tmpfs -o size=512m tmpfs /mnt/ramdisk
-
-# Copy and mount
-cp CVE20181092.img /mnt/ramdisk
-mount -o loop /mnt/ramdisk/CVE20181092.img /mnt/hdd
-```
-
 
 #### Debug Linux kernel using QEMU
 To debug linux kernel, an unstripped kernel binary (usually named vmlinux/vmlinuz)
